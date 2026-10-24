@@ -29,3 +29,10 @@ timeline/
 |---|---|---|---|
 | `darwin` | 生物演化思想时间线 | `index.html` | `data.js` |
 | `bioinfo` | AI 解码生命时间线 | `index.html` | `data.js` |
+
+## 许可协议
+
+本仓库的原创内容（页面代码、文案、时间线数据）采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh) 协议：转载、改编请注明出处。
+
+`img/` 目录中引自维基百科等外部来源的图片，版权归各自原作者所有，遵循其原始许可协议，不在本仓库协议覆盖范围内。
+
