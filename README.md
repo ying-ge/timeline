@@ -1,36 +1,31 @@
 # timeline
 
-时间线项目仓库：每个主题一个独立目录，统一放在 `topics/` 下，互不依赖、可单独打开。
+时间线网站仓库：每个主题一个**结构完全一致**的自包含目录，全站由根 `index.html` 门户页导航。
 
-## 目录结构
+## 目录结构（每个主题统一模板）
 
 ```
 timeline/
-├── README.md            本说明
-└── topics/              所有时间线主题，一个主题一个子目录
-    ├── bio-course/      生物演化思想时间线
-    │   ├── README.md    该主题说明（可选）
-    │   ├── pages/timeline.html
-    │   └── assets/images/…
-    └── ai-decode-life/  AI 解码生命时间线
-        ├── timeline.html
-        ├── timeline-data.js
-        └── img/…
+├── index.html            全站门户（主题导航）
+├── README.md             本说明
+└── topics/<主题名>/       一个主题 = 一个自包含目录
+    ├── timeline.html     入口页面（名字、位置固定）
+    ├── data.js           时间线数据（数据与页面分离；纯静态页可省略）
+    ├── img/              该主题全部图片
+    └── README.md         主题说明（可选）
 ```
 
-## 新增主题的规则
+## 新增主题流程
 
-1. 在 `topics/` 下新建目录，命名为 `kebab-case` 英文短名（如 `topics/chem-history/`）。
-2. 主题目录必须**自包含**：HTML、数据 JS、图片等所有依赖放在本主题目录内，只用相对路径引用，不跨主题引用。
-3. 入口 HTML 建议统一命名为 `timeline.html`（放在主题目录根部或 `pages/` 下均可）。
-4. 数据与页面分离的，数据文件放在入口 HTML 同目录（如 `timeline-data.js`）。
-5. 图片统一放本主题的 `img/`（或 `assets/images/`）目录。
-6. 在本 README 的「主题清单」表里登记一行。
-7. `git add topics/<name> && git commit`。
+1. `mkdir topics/<kebab-case英文名>`
+2. 放入 `timeline.html`（入口）、`data.js`（数据，如有）、`img/`（图片）
+3. 主题内只用相对路径引用（`img/xxx.jpg`、`data.js`），**不跨主题引用、不用 `../` 跳出本主题**
+4. 在根 `index.html` 的卡片列表里加一个 `<a class="card">`
+5. 在下面主题清单表里登记一行，然后 git commit
 
 ## 主题清单
 
-| 主题目录 | 名称 | 入口 | 说明 |
+| 主题目录 | 名称 | 入口 | 数据 |
 |---|---|---|---|
-| `topics/bio-course` | 生物演化思想时间线 | `topics/bio-course/pages/timeline.html` | 演化理论发展史，图片在 `assets/images/` |
-| `topics/ai-decode-life` | AI 解码生命时间线 | `topics/ai-decode-life/timeline.html` | 依赖同目录 `timeline-data.js`，图片在 `img/` |
+| `topics/bio-course` | 生物演化思想时间线 | `timeline.html` | 内嵌于 HTML |
+| `topics/ai-decode-life` | AI 解码生命时间线 | `timeline.html` | `data.js` |

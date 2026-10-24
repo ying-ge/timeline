@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间线 · Timeline</title>
+<style>
+  :root { --green:#6A994E; --bg:#FAF9F6; --ink:#333; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+         background:var(--bg); color:var(--ink); }
+  main { text-align:center; padding:40px 24px; }
+  h1 { font-size:2rem; margin:0 0 8px; }
+  p.sub { color:#888; margin:0 0 36px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; max-width:760px; }
+  a.card { display:block; padding:28px 24px; background:#fff; border:1px solid #E5E2DA;
+           border-radius:14px; text-decoration:none; color:var(--ink); transition:.2s; }
+  a.card:hover { border-color:var(--green); box-shadow:0 6px 18px rgba(106,153,78,.15); transform:translateY(-2px); }
+  .card .t { font-size:1.15rem; font-weight:700; margin-bottom:6px; }
+  .card .d { font-size:.9rem; color:#777; line-height:1.5; }
+  footer { margin-top:40px; font-size:.8rem; color:#aaa; }
+</style>
+</head>
+<body>
+<main>
+  <h1>⏳ 时间线</h1>
+  <p class="sub">知识主题时间线合集</p>
+  <div class="grid">
+    <a class="card" href="topics/bio-course/timeline.html">
+      <div class="t">🧬 生物演化思想时间线</div>
+      <div class="d">从拉马克到现代综合——演化理论发展史上的关键人物与事件</div>
+    </a>
+    <a class="card" href="topics/ai-decode-life/timeline.html">
+      <div class="t">🤖 AI 解码生命时间线</div>
+      <div class="d">生物信息学与 AI 交叉领域的技术演进</div>
+    </a>
+  </div>
+  <footer>新主题请放入 topics/ 目录，入口统一为 timeline.html</footer>
+</main>
+</body>
+</html>
