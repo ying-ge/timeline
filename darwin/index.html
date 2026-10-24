@@ -217,7 +217,7 @@
 <button id="allTourBtn" title="自动导览：按时间顺序飞遍全部事件">▶ 全景漫游</button>
 <button id="prevEvBtn" title="上一个事件">◀</button>
 <button id="nextEvBtn" title="下一个事件">▶</button>
-<button id="fsBtn" title="进入/退出全屏">⛶ 全屏</button>
+<button id="fsBtn" title="进入/退出全屏">⛶</button>
 <button id="tourBtn" title="自动导览：与演化理论相关的事件">▶ 演化思想之旅</button>
 <button id="lifeTourBtn" title="自动导览：达尔文生卒年 1809–1882 间的事件">▶ 达尔文的一生</button>
 <button id="resetBtn" title="重置为全景视图">⤢ 重置视图</button>
@@ -808,7 +808,7 @@ setTimeout(() => { const h = document.getElementById("hint"); h.style.opacity = 
     else document.documentElement.requestFullscreen().catch(()=>{});
   });
   document.addEventListener("fullscreenchange",()=>{
-    fsBtn.textContent=document.fullscreenElement?"⛶ 退出全屏":"⛶ 全屏";
+    fsBtn.title=document.fullscreenElement?"退出全屏":"进入/退出全屏";
     fsBtn.title=document.fullscreenElement?"退出全屏":"进入全屏";
   });
 })();
