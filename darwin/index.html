@@ -61,11 +61,16 @@
   #prevEvBtn:hover, #nextEvBtn:hover { background: #efede8; }
   #prevEvBtn { top: 274px; }
   #nextEvBtn { top: 312px; }
+  #fsBtn { position: fixed; left: 20px; top: 350px; z-index: 60;
+           padding: 8px 14px; font-size: 13px; border: 1px solid #c9c5bd;
+           border-radius: 20px; background: #fff; color: #555; cursor: pointer;
+           box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  #fsBtn:hover { background: #efede8; }
   #dvPanel { position: fixed; left: 20px; top: 122px; bottom: 20px; z-index: 59; width: 430px;
              overflow-y: auto; background: #fff; border: 1px solid #C6D8BC; border-radius: 10px;
              box-shadow: 0 8px 28px rgba(0,0,0,.16); padding: 14px 16px; display: none; }
   #dvPanel.open { display: block; }
-  #dvPanel.open ~ #tourBtn, #dvPanel.open ~ #lifeTourBtn, #dvPanel.open ~ #allTourBtn, #dvPanel.open ~ #resetBtn, #dvPanel.open ~ #prevEvBtn, #dvPanel.open ~ #nextEvBtn { opacity: 0; pointer-events: none; }
+  #dvPanel.open ~ #tourBtn, #dvPanel.open ~ #lifeTourBtn, #dvPanel.open ~ #allTourBtn, #dvPanel.open ~ #resetBtn, #dvPanel.open ~ #prevEvBtn, #dvPanel.open ~ #nextEvBtn, #dvPanel.open ~ #fsBtn { opacity: 0; pointer-events: none; }
   #dvPanel h3 { margin: 0 0 4px; font-size: 15px; color: #3E5B32; }
   #dvPanel p.hint { margin: 0 0 8px; font-size: 12px; color: #777; }
   #dvPanel table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
@@ -212,6 +217,7 @@
 <button id="allTourBtn" title="自动导览：按时间顺序飞遍全部事件">▶ 全景漫游</button>
 <button id="prevEvBtn" title="上一个事件">◀</button>
 <button id="nextEvBtn" title="下一个事件">▶</button>
+<button id="fsBtn" title="进入/退出全屏">⛶ 全屏</button>
 <button id="tourBtn" title="自动导览：与演化理论相关的事件">▶ 演化思想之旅</button>
 <button id="lifeTourBtn" title="自动导览：达尔文生卒年 1809–1882 间的事件">▶ 达尔文的一生</button>
 <button id="resetBtn" title="重置为全景视图">⤢ 重置视图</button>
@@ -794,6 +800,18 @@ vp.addEventListener("touchmove", e => {
 
 // 提示条自动淡出
 setTimeout(() => { const h = document.getElementById("hint"); h.style.opacity = 0; }, 6000);
+// ===== 全屏切换 =====
+(function(){
+  const fsBtn=document.getElementById("fsBtn");
+  fsBtn.addEventListener("click",()=>{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(()=>{});
+  });
+  document.addEventListener("fullscreenchange",()=>{
+    fsBtn.textContent=document.fullscreenElement?"⛶ 退出全屏":"⛶ 全屏";
+    fsBtn.title=document.fullscreenElement?"退出全屏":"进入全屏";
+  });
+})();
 </script>
 </body>
 </html>
