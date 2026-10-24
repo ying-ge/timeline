@@ -425,7 +425,8 @@ function tourStop() {
 function tourStart(sel, btn, label) {
   if (tour) tourStop();
   btn.classList.add("active");
-  btn.textContent = "⏸ 空格暂停 · Esc 退出";
+  btn.textContent = "⏸ 点击暂停 · Esc 退出";
+  btn.title = "暂停导览（Esc 退出）";
   tour = { i: -1, timer: 0, sel, label, btn, paused: false };
   tourGoTo(0);
 }
@@ -468,13 +469,33 @@ function tourGoTo(i) {
 }
 
 tourBtn.addEventListener("click", () => {
-  if (tour && tour.sel === '.event[data-dv]') return tourStop();   // 再点一次=退出
+  if (tour && tour.sel === '.event[data-dv]') return togglePause();   // 播放中点击=暂停/恢复，Esc 退出
   tourStart('.event[data-dv]', tourBtn, "🧭 演化思想之旅");
 });
 allTourBtn.addEventListener("click", () => {
-  if (tour && tour.sel === '.event') return tourStop();
+  if (tour && tour.sel === '.event') return togglePause();
   tourStart('.event', allTourBtn, "🚀 全景漫游");
 });
+lifeTourBtn.addEventListener("click", () => {
+  if (tour && tour.sel === '.event[data-life]') return togglePause();
+  tourStart('.event[data-life]', lifeTourBtn, "🐦 达尔文的一生");
+});
+// 按钮本体切换暂停/恢复（与空格键同一逻辑）
+function togglePause() {
+  if (!tour) return;
+  if (tour.paused) {           // 恢复
+    tour.paused = false;
+    tour.btn.textContent = "⏸ 点击暂停 · Esc 退出";
+    tour.btn.title = "暂停导览（Esc 退出）";
+    tourGoTo(tour.i);
+  } else {                     // 暂停：取消飞行与停留计时，保留详情卡
+    tour.paused = true;
+    clearTimeout(tour.timer);
+    tour.flightTimer && clearTimeout(tour.flightTimer);
+    tour.btn.textContent = "▶ 点击继续 · Esc 退出";
+    tour.btn.title = "继续导览（Esc 退出）";
+  }
+}
 // —— 站点清单面板 ——
 document.getElementById('dvLegendLink').addEventListener("click", (e) => {
   const panel = document.getElementById('dvPanel');
@@ -525,10 +546,7 @@ document.addEventListener("click", (e) => {
     panel.classList.remove('open');
   }
 });
-lifeTourBtn.addEventListener("click", () => {
-  if (tour && tour.sel === '.event[data-life]') return tourStop();
-  tourStart('.event[data-life]', lifeTourBtn, "🐦 达尔文的一生");
-});
+// lifeTour 按钮绑定已上移至 479 行（与另外两个导览按钮共用 togglePause）
 
 // 键盘：← 上一站 / → 下一站（导览中生效）；Esc 退出（导览 / 详情卡 / 站点清单面板）
 document.addEventListener("keydown", e => {
@@ -540,18 +558,9 @@ document.addEventListener("keydown", e => {
     return;
   }
   if (!tour) return;
-  if (e.key === " " || e.code === "Space") {   // 空格：暂停/恢复导览
+  if (e.key === " " || e.code === "Space") {   // 空格：暂停/恢复导览（与按钮点击同一逻辑）
     e.preventDefault();
-    if (tour.paused) {           // 恢复
-      tour.paused = false;
-      tour.btn.textContent = "⏸ 空格暂停 · Esc 退出";
-      tourGoTo(tour.i);
-    } else {                     // 暂停：取消飞行与停留计时，保留详情卡
-      tour.paused = true;
-      clearTimeout(tour.timer);
-      tour.flightTimer && clearTimeout(tour.flightTimer);
-      tour.btn.textContent = "▶ 继续（空格）";
-    }
+    togglePause();
     return;
   }
   if (e.key === "ArrowRight") { e.preventDefault(); clearTimeout(tour.timer); window.hideTip(); tourGoTo(tour.i + 1); }
