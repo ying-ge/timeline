@@ -27,5 +27,5 @@ timeline/
 
 | 主题目录 | 名称 | 入口 | 数据 |
 |---|---|---|---|
-| `topics/bio-course` | 生物演化思想时间线 | `timeline.html` | `data.js` |
+| `topics/darwin` | 生物演化思想时间线 | `timeline.html` | `data.js` |
 | `topics/bioinfo` | AI 解码生命时间线 | `timeline.html` | `data.js` |
