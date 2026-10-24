@@ -21,12 +21,10 @@
   .legend span:hover { background:#e8e5de; border-color:#c9c5bd; }
   .legend i { width:11px; height:11px; border-radius:50%; display:inline-block; }
 
-  #viewport { position:relative; height:calc(100vh - 108px); overflow-x:auto; overflow-y:hidden; cursor:grab; }
+  #viewport { position:relative; height:calc(100vh - 108px); overflow:hidden; cursor:grab; }
   #viewport.dragging { cursor:grabbing; }
-  #viewport::-webkit-scrollbar { height:10px; }
-  #viewport::-webkit-scrollbar-thumb { background:#c9c5bd; border-radius:5px; }
-  #viewport::-webkit-scrollbar-track { background:#efede8; }
-  #timeline { position:relative; height:100%; width:11000px; }
+  #timeline { position:relative; height:100%; width:11000px;
+              transform-origin:0 0; will-change:transform; }
 
   .axis { position:absolute; left:0; right:0; top:50%; height:3px;
           background:#555; border-radius:2px; }
@@ -137,8 +135,6 @@
   /* 横屏低高度（手机横屏）：整体缩放 + 允许纵向滚动看到上下内容 */
   @media (orientation:landscape) and (max-height:520px){
     #viewport { overflow-y:auto; }
-    #timeline { transform:scale(.72); transform-origin:0 0;
-                height:calc(100vh/.72); width:calc(11000px/.72); }
     header { padding:4px 28px 0; }
     header h1 { font-size:22px; }
     header p { font-size:14px; }
@@ -328,35 +324,122 @@ for (const ev of placed) {
     // 不再在移开时隐藏：卡片固定右上供阅读，用 ✕ / 点空白 / 滚动关闭
   });
   const vp=document.getElementById("viewport");
-  vp.addEventListener("scroll",()=>{ if(window.__touring) return; tip.style.display="none";activeEv=null; });
+  // 相机模式下没有 scroll 事件：拖拽/飞行开始即关闭详情卡
+  vp.addEventListener("mousedown",()=>{ if(window.__touring) return; tip.style.display="none";activeEv=null; });
 })();
 
+// ===== 交互：地图式相机（拖拽平移 + 滚轮滚动 + Ctrl/双指缩放 + 缓动飞行）=====
 const vp=document.getElementById("viewport");
-let dragging=false,startX=0,startSL=0;
-vp.addEventListener("mousedown",e=>{ if(tip.contains(e.target)) return;   // 详情卡内拖动选择文本，不拖时间线
-  dragging=true;startX=e.clientX;startSL=vp.scrollLeft;vp.classList.add("dragging");});
-window.addEventListener("mousemove",e=>{if(dragging)vp.scrollLeft=startSL-(e.clientX-startX);});
-window.addEventListener("mouseup",()=>{dragging=false;vp.classList.remove("dragging");});
+const stage=document.getElementById("timeline");
+let view={s:1,tx:0,ty:0}, animId=null;
+function clamp(v,lo,hi){return v<lo?lo:(v>hi?hi:v);}
+function apply(){ stage.style.transform=`translate(${view.tx}px,${view.ty}px) scale(${view.s})`; }
+// easeInOutCubic
+const easeT=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function animateTo(ts,ttx,tty,dur=700,done){
+  if(animId)cancelAnimationFrame(animId);
+  const s0=view.s,tx0=view.tx,ty0=view.ty,t0=performance.now();
+  const step=now=>{
+    const k=Math.min(1,(now-t0)/dur),e=easeT(k);
+    view.s=s0+(ts-s0)*e; view.tx=tx0+(ttx-tx0)*e; view.ty=ty0+(tty-ty0)*e;
+    apply();
+    if(k<1)animId=requestAnimationFrame(step);
+    else{animId=null;done&&done();}
+  };
+  animId=requestAnimationFrame(step);
+}
+function stopAnim(){ if(animId){cancelAnimationFrame(animId);animId=null;} }
+// 年份 → 让该年份居中的 tx
+function txForYear(y,s){ return vp.clientWidth/2 - x(y)*s; }
+function clampTx(tx,s){ return clamp(tx, vp.clientWidth - W*s - 40, 40); }
+// 初始：起点年代靠左
+view.tx=clampTx(txForYear(T0+8,1),1); view.s=1; apply();
+window.addEventListener("resize",()=>{ view.tx=clampTx(view.tx,view.s); apply(); });
+
+// 拖动平移（带惯性）
+let dragging=false,sx=0,sy=0,oTx=0,oTy=0,vx=0,lastX=0,lastT=0;
+vp.addEventListener("mousedown",e=>{
+  if(tip.contains(e.target)) return;   // 详情卡内拖动选择文本，不拖时间线
+  stopAnim(); dragging=true; sx=e.clientX; sy=e.clientY;
+  oTx=view.tx; oTy=view.ty; vx=0; lastX=e.clientX; lastT=performance.now();
+  vp.classList.add("dragging");
+});
+window.addEventListener("mousemove",e=>{
+  if(!dragging)return;
+  view.tx=clampTx(oTx+(e.clientX-sx),view.s);
+  view.ty=clamp(oTy+(e.clientY-sy),vp.clientHeight-vp.clientHeight*view.s,0);
+  const now=performance.now();
+  if(now-lastT>0){ vx=(e.clientX-lastX)/(now-lastT); }   // px/ms
+  lastX=e.clientX; lastT=now;
+  apply();
+});
+window.addEventListener("mouseup",()=>{
+  if(!dragging)return;
+  dragging=false; vp.classList.remove("dragging");
+  // 惯性滑动：按松手速度衰减滑行
+  if(Math.abs(vx)>0.15){
+    const v=vx, t0=performance.now(), dur=1400, decay=1/900;
+    const glide=now=>{
+      if(dragging)return;
+      const dt=now-t0, f=Math.exp(-dt*decay)*v;
+      if(Math.abs(f)<0.01)return;
+      const tx2=clampTx(view.tx+f*16,view.s);
+      if(tx2===view.tx&&Math.abs(f)>0.02)return;   // 撞到边缘
+      view.tx=tx2; apply();
+      requestAnimationFrame(glide);
+    };
+    requestAnimationFrame(glide);
+  }
+});
+// 滚轮：普通 = 平移；Ctrl/Cmd = 以鼠标为焦点缩放
 vp.addEventListener("wheel",e=>{
-  // 详情卡内滚动不劫持
-  if(tip.contains(e.target)) return;
-  if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){vp.scrollLeft+=e.deltaY;e.preventDefault();}
+  if(tip.contains(e.target)) return;   // 详情卡内滚动不劫持
+  stopAnim(); e.preventDefault();
+  if(e.ctrlKey||e.metaKey){
+    const f=Math.exp(-e.deltaY*0.0015);
+    const ns=clamp(view.s*f,0.4,2.5), k=ns/view.s;
+    view.tx=e.clientX-(e.clientX-view.tx)*k;
+    view.ty=e.clientY-(e.clientY-view.ty)*k;
+    view.s=ns;
+  }else{
+    const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+    view.tx=clampTx(view.tx-d,view.s);
+  }
+  apply();
 },{passive:false});
-// ===== 图例按钮：平滑滚动到该区段第一个事件 =====
+// 触屏：单指平移，双指捏合缩放
+let ts=null;
+vp.addEventListener("touchstart",e=>{
+  stopAnim();
+  if(e.touches.length===1) ts={x:e.touches[0].clientX,y:e.touches[0].clientY,tx:view.tx,ty:view.ty};
+  else if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;ts={d:Math.hypot(dx,dy),s:view.s,tx:view.tx,ty:view.ty};}
+},{passive:true});
+vp.addEventListener("touchmove",e=>{
+  if(e.touches.length===1&&ts&&ts.x!==undefined){
+    view.tx=clampTx(ts.tx+(ts.x-e.touches[0].clientX),view.s);
+    view.ty=clamp(ts.ty+(ts.y-e.touches[0].clientY),vp.clientHeight-vp.clientHeight*view.s,0);
+    apply();
+  }else if(e.touches.length===2&&ts&&ts.d){
+    const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+    const ns=clamp(ts.s*(ts.d/Math.hypot(dx,dy)),0.4,2.5);
+    const cx=(e.touches[0].clientX+e.touches[1].clientX)/2, cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
+    const k=ns/view.s;
+    view.tx=cx-(cx-view.tx)*k; view.ty=cy-(cy-view.ty)*k; view.s=ns;
+    view.tx=clampTx(view.tx,view.s); apply();
+  }
+},{passive:true});
+// 平移时关闭详情卡（拖拽开始时触发）
+
+// ===== 图例按钮：缓动飞行到该区段第一个事件 =====
 document.querySelectorAll(".legend span[data-era]").forEach(btn=>{
   btn.addEventListener("click",()=>{
     const era=ERAS.find(e=>e[4]===btn.dataset.era);
     if(!era)return;
     const first=placed.filter(e=>e.y>=era[0]&&e.y<era[1]).sort((a,b)=>a.y-b.y)[0];
     if(!first)return;
-    const target=x(first.y)-innerWidth/2;
-    const startX=vp.scrollLeft, diff=Math.max(0,Math.min(target,vp.scrollWidth-innerWidth))-startX;
-    const t0=performance.now(), dur=900;
-    (function anim(t){
-      const p=Math.min((t-t0)/dur,1), ease=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
-      vp.scrollLeft=startX+diff*ease;
-      if(p<1)requestAnimationFrame(anim);
-    })(t0);
+    tip.style.display="none";
+    const tTx=clampTx(txForYear(first.y,view.s),view.s);
+    animateTo(view.s,tTx,view.ty,900);
   });
 });
 
@@ -368,7 +451,7 @@ setTimeout(()=>{document.getElementById("hint").style.opacity=0;},6000);
   const prevBtn=document.getElementById("tourPrev");
   const nextBtn=document.getElementById("tourNext");
   const spdBtn=document.getElementById("tourSpeed");
-  const vp2=document.getElementById("viewport");
+  const vp2=document.getElementById("viewport");   // 相机模式：平移由上面的 view/apply 负责
   let timer=null, idx=0, on=false, paused=false;
   const seq=placed.slice();   // placed 已按年份排序
   const SPEEDS=[{n:"慢",ms:9000},{n:"中",ms:6000},{n:"快",ms:3500}];
@@ -393,9 +476,9 @@ setTimeout(()=>{document.getElementById("hint").style.opacity=0;},6000);
   }
   function step(){
     const ev=seq[idx];
-    const target=x(ev.y)-innerWidth/2;
-    vp2.scrollTo({left:Math.max(0,target), behavior:"smooth"});
-    setTimeout(()=>showTipFor(idx), 900);
+    const tTx=clampTx(txForYear(ev.y,view.s),view.s);
+    animateTo(view.s,tTx,view.ty,800);
+    setTimeout(()=>showTipFor(idx), 820);
   }
   function stop(){
     window.__touring=false; on=false; paused=false; btn.classList.remove("on"); btn.textContent="▶";
