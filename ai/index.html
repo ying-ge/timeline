@@ -344,7 +344,7 @@ for (const ev of placed) {
     // 与时间之旅一致：固定右上（窄屏由媒体查询覆盖为底部抽屉）
     tip.style.left="auto"; tip.style.right="12px";
     tip.style.top="70px";
-    tip.style.bottom="auto"; tip.style.right="auto";
+    tip.style.bottom="auto";
     tip.style.maxHeight=(innerHeight-100)+"px";
     tip.style.overflowY="auto";
   }
@@ -526,7 +526,7 @@ setTimeout(()=>{document.getElementById("hint").style.opacity=0;},6000);
     if(!el) return;
     tip.style.left="auto"; tip.style.right="12px";   // 固定在右侧（窄屏由媒体查询覆盖为底部抽屉）
     tip.style.top="70px";
-    tip.style.bottom="auto"; tip.style.right="auto"; tip.style.maxHeight=(innerHeight-100)+"px";
+    tip.style.bottom="auto"; tip.style.maxHeight=(innerHeight-100)+"px";
     tip.style.overflowY="auto";
     const detEl=el.querySelector(".det");
     tip.innerHTML=detEl?detEl.innerHTML:"";
