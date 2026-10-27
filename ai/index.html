@@ -94,6 +94,14 @@
               border:none; border-radius:50%; background:rgba(0,0,0,.06); color:#666;
               font-size:16px; cursor:pointer; padding:0; }
   #tipClose:hover { background:rgba(0,0,0,.15); color:#222; }
+  .tipFontCtl { position:absolute; top:8px; right:44px; display:flex; align-items:center; gap:2px;
+                font-size:13px; color:#666; user-select:none; z-index:2; }
+  .tipFontCtl button { width:24px; height:24px; line-height:1; border:none; border-radius:50%;
+                background:rgba(0,0,0,.06); color:#666; font-size:14px; cursor:pointer; padding:0; }
+  .tipFontCtl button:hover { background:rgba(0,0,0,.15); color:#222; }
+  .tipFontCtl span { min-width:30px; text-align:center; cursor:default; font-variant-numeric:tabular-nums; }
+  #tipResize { position:absolute; left:0; bottom:0; width:20px; height:20px; cursor:nesw-resize; z-index:2;
+               background:linear-gradient(225deg, transparent 50%, rgba(0,0,0,.18) 50%); border-bottom-left-radius:10px; }
 
   /* 详情卡组合样式（重构自内联style）*/
   .tech-tag { margin-top:6px; font-size:15px; }
@@ -205,7 +213,35 @@ const tip=document.createElement("div"); tip.id="detailTip"; document.body.appen
 const tipClose=document.createElement("button"); tipClose.id="tipClose"; tipClose.textContent="✕";
 tipClose.title="关闭详情卡"; tipClose.setAttribute("aria-label","关闭详情卡");
 tip.appendChild(tipClose);
-new MutationObserver(()=>{ if(!tip.contains(tipClose)) tip.appendChild(tipClose); })
+// 字号调节：±调整详情卡字号（所有详情页全局生效），localStorage 记忆
+const fontCtl=document.createElement("div"); fontCtl.className="tipFontCtl";
+fontCtl.innerHTML=`<button data-d="-1" title="字号 −">−</button><span id="tipFontLbl" title="双击重置为 100%" style="cursor:pointer">100%</span><button data-d="1" title="字号 +">＋</button>`;
+tip.appendChild(fontCtl);
+let tipFontScale=parseFloat(localStorage.getItem("tipFontScale"))||1;
+function applyTipFont(){ tipFontScale=Math.min(2,Math.max(.6,tipFontScale));
+  tip.style.fontSize=(22*tipFontScale)+"px";
+  fontCtl.querySelector("#tipFontLbl").textContent=Math.round(tipFontScale*100)+"%";
+  localStorage.setItem("tipFontScale",tipFontScale); }
+fontCtl.addEventListener("click",e=>{ const d=e.target.dataset&&e.target.dataset.d; if(!d)return;
+  e.stopPropagation(); tipFontScale+= +d*0.1; applyTipFont(); });
+fontCtl.addEventListener("dblclick",e=>{ if(e.target.id!=="tipFontLbl")return;
+  e.stopPropagation(); tipFontScale=1; applyTipFont(); });
+applyTipFont();
+// 拖拽左下角手柄调整详情卡宽度（px），全局生效并记忆
+const tipResize=document.createElement("div"); tipResize.id="tipResize"; tipResize.title="拖动调整卡片大小（向左拖变宽，向右拖变窄）";
+tip.appendChild(tipResize);
+let tipW=parseInt(localStorage.getItem("tipW"))||0;
+if(tipW) tip.style.width=tipW+"px";
+tipResize.addEventListener("mousedown",e=>{
+  e.preventDefault(); e.stopPropagation();
+  const sw=tip.getBoundingClientRect().width, sx=e.clientX;
+  const mv=ev=>{ tipW=Math.round(Math.min(innerWidth-24,Math.max(340,sw+(sx-ev.clientX))));
+    tip.style.width=tipW+"px"; };
+  const up=()=>{ window.removeEventListener("mousemove",mv); window.removeEventListener("mouseup",up);
+    localStorage.setItem("tipW",tipW); };
+  window.addEventListener("mousemove",mv); window.addEventListener("mouseup",up);
+});
+new MutationObserver(()=>{ if(!tip.contains(tipClose)){tip.append(fontCtl,tipClose,tipResize);} })
   .observe(tip,{childList:true});
 tipClose.addEventListener("click",e=>{ e.stopPropagation(); tip.style.display="none";
   window.dispatchEvent(new CustomEvent("tipclose")); });
