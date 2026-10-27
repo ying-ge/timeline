@@ -1,10 +1,29 @@
-// ===== 数据 =====
-// cat: cell细胞 / gen遗传 / mol分子 / evo演化 / div多样性 / fro前沿
-// lv:  1里程碑(大点粗干) / 2重要(小点细干)
-// q:   达尔文之问——本事件回答了他当年无法回答的问题
-  // 演化思想之旅：白名单（年份 -> [事件名, 入选理由]）。逐条可核对；不在表内的一律不入选。
-  // 理由分四类：思想源头 / 理论本身与发展 / 演化的证据(化石·古DNA·比较) / 演化的遗传机制与时间尺度
-const DV_LIST = {
+// ===== 统一模板 · data.js =====
+// 结构：THEME 主题 → CATS 类别 → EVENTS 事件（核心）→ TOURS 精选导览白名单
+// 字段: y 年份 | n 名称 | w 人物/机构 | c 类别(见 CATS) | lv 1里程碑/2重要 | side 上下
+//       d 描述 | q 引导问题 | qt 问题类型 | g 趣闻 | img/wiki/wikiW/wzh 链接与图片
+
+// ---------- 主题 ----------
+const THEME = {
+  title: "演化思想之旅",
+  subtitle: "从达尔文之问到基因组时代：演化论如何被证据、遗传学与分子生物学一步步证实",
+};
+
+// ---------- 类别 ----------
+// key 与事件 c 字段对应，颜色沿用 index.html 中的 CSS 变量
+const CATS = [
+  ["cell","细胞篇",      "var(--cell)",     "细胞与生理学"],
+  ["gen", "遗传与变异篇","var(--genetics)", "遗传机制"],
+  ["mol", "分子与基因组","var(--molecule)", "分子生物学"],
+  ["evo", "演化生物学",  "var(--evolution)","演化证据与理论"],
+  ["div", "多样性篇",    "var(--diversity)","生物多样性"],
+  ["fro", "前沿篇",      "var(--frontier)", "AI×生物学前沿"],
+];
+
+// ---------- 精选导览白名单（演化思想之旅）----------
+// 年份 -> [事件名, 入选理由]。逐条可核对；不在表内的一律不入选。
+// 理由分四类：思想源头 / 理论本身与发展 / 演化的证据(化石·古DNA·比较) / 演化的遗传机制与时间尺度
+const TOURS = {
   1543: [["《人体的构造》出版","前史：亲自观察推翻千年权威，演化论赖以诞生的人本方法论起点"]],
   1749: [["《自然史》开始出版","前史：物种可变思想的近代起点，达尔文历史概略点名第一位"]],
   1798: [["《人口原理》","思想源头：生存斗争概念的直接来源（达尔文1838年自述）"]],
@@ -27,6 +46,7 @@ const DV_LIST = {
   1882: [["达尔文逝世","人物节点：1809–1882 一生的终点"]],
   1900: [["孟德尔定律重发现","遗传机制：演化遗传学的起点"]],
   1903: [["突变与基因型概念","遗传机制：变异的来源问题"]],
+  1908: [["哈迪-温伯格平衡","遗传机制：种群基因频率的定量起点"]],
   1927: [["X 射线人工诱变","遗传机制：可遗传变异可被人工诱导"]],
   1937: [["现代综合进化论","理论发展：自然选择+孟德尔遗传的统一"]],
   1942: [["物种的生物学概念","理论发展：物种与生殖隔离的定义"]],
@@ -49,6 +69,8 @@ const DV_LIST = {
   2005: [["黑猩猩基因组","证据：最近缘物种的基因组比较"]],
   2010: [["尼安德特人基因组","证据：古DNA与人种杂交史"]],
 };
+// 兼容别名：旧渲染器读取 DV_LIST
+const DV_LIST = TOURS;
 
 const EVENTS = [
 // —— 前史：显微镜与分类学时代（1543–1858，达尔文出生前后）——
@@ -89,6 +111,7 @@ const EVENTS = [
 {y:1900, n:"孟德尔定律重发现", w:"德弗里斯 de Vries / 柯伦斯 Correns / 丘谢马克 Tschermak", c:"gen", lv:1, q:"自然选择所依赖的性状如何遗传？", d:"三人各自独立实验后几乎同时读到孟德尔 1865 年论文，遗传学在此刻正式诞生，这是科学史上著名的“多重独立发现”。", img:"img/img52.png", wiki:"https://en.wikipedia.org/wiki/Mendelian_inheritance", wikiW:"https://en.wikipedia.org/wiki/Hugo_de_Vries", wzh:"孟德尔定律"},
 {y:1902, n:"染色体与遗传的联系", w:"沃尔特·萨顿 Walter Sutton / 特奥多尔·鲍维里 Theodor Boveri", c:"gen", lv:2, d:"他们注意到减数分裂中染色体的行为与孟德尔因子完全平行，提出遗传的染色体学说，基因从此有了实体载体（还未命名）。", img:"img/img63.png", wiki:"https://en.wikipedia.org/wiki/Boveri%E2%80%93Sutton_chromosome_theory", wikiW:"https://en.wikipedia.org/wiki/Walter_Sutton", wzh:"鲍维里"},
 {y:1903, n:"突变与基因型概念", w:"德弗里斯 de Vries / 威廉·约翰森 Wilhelm Johannsen", c:"gen", lv:2, q:"自然选择所筛选的变异从哪里来？", d:"月见草的新性状不渐进、不融合，而是一步到位地“跳”出来。德弗里斯称之为“突变”。约翰森随后把“看不见的基因型”与“看得见的表现型”分开命名。“混合遗传会抹平差异”这一当年反对达尔文的致命理由，从此瓦解。", img:"img/img51.jpg", wiki:"https://en.wikipedia.org/wiki/Mutationism", wikiW:"https://en.wikipedia.org/wiki/Wilhelm_Johannsen", wzh:"突变论"},
+{y:1908, n:"哈迪-温伯格平衡", w:"戈弗雷·哈迪 G. H. Hardy / 威廉·温伯格 Wilhelm Weinberg", c:"gen", lv:2, q:"在没有选择的大群体中，遗传变异会消失还是保持？", img:"img/img74.png", d:"哈迪（英国数学家）与温伯格（德国医生）同年各自证明：群体足够大、随机交配、且无选择/突变/迁移时，等位基因频率代代保持，基因型频率稳定为 p²:2pq:q²。这驳斥了“显性性状会逐渐占据种群”的误解，也让基因频率的变化从此可以定量计算——群体遗传学由此奠基。", wiki:"https://en.wikipedia.org/wiki/Hardy%E2%80%93Weinberg_principle", wikiW:"https://en.wikipedia.org/wiki/G._H._Hardy", wzh:"哈迪-温伯格平衡", g:`哈迪以数论闻名，毕生瞧不起应用数学。1908 年他写信给《科学》只为驳斥“显性性状会蔓延全种群”的错误论断，顺手写下这条他自认“很简单”的定律，还嫌它“用处不大”——结果这封信成了他被生物学家引用最多的工作。温伯格自费行医，论文发表于德文期刊，被忽视数十年才补上名字。两人终生未识。`},
 {y:1910, n:"基因在染色体上", w:"托马斯·摩尔根 Thomas Hunt Morgan", c:"gen", lv:1, d:"摩尔根用果蝇白眼突变证明基因位于染色体上，并提出连锁与交换（遗传第三定律），1933 年获诺贝尔奖。基因从抽象符号变成染色体上的实体。", img:"img/img26.jpg", wiki:"https://en.wikipedia.org/wiki/Genetic_linkage", wikiW:"https://en.wikipedia.org/wiki/Thomas_Hunt_Morgan", wzh:"摩尔根", q:"遗传的物质载体究竟在哪里？"},
 {y:1927, n:"X 射线人工诱变", w:"赫尔曼·穆勒 Hermann Muller", c:"gen", lv:2, q:"可遗传变异从哪里来？", d:"穆勒证明 X 射线可使果蝇突变率提高上百倍：变异并非凭空产生，物理/化学因素即可诱发。自然选择不创造变异，只筛选已有可遗传差异；突变与重组是变异之源。1946 年诺贝尔奖。", img:"img/img41.jpg", wiki:"https://en.wikipedia.org/wiki/Mutagenesis", wikiW:"https://en.wikipedia.org/wiki/Hermann_Josef_Muller", wzh:"穆勒"},
 {y:1937, n:"现代综合进化论", w:"费奥多西·杜布赞斯基 Theodosius Dobzhansky", c:"evo", lv:1, side:1, d:"《遗传学与物种起源》把群体遗传学与达尔文选择论融合：自然选择作用于种群内的等位基因频率：“达尔文+孟德尔”的现代综合运动由此启动，迈尔、赫胥黎、辛普森等相继完成。", img:"img/img28.png", wiki:"https://en.wikipedia.org/wiki/Modern_synthesis_(20th_century)", wikiW:"https://en.wikipedia.org/wiki/Theodosius_Dobzhansky", wzh:"现代综合进化论", q:"遗传学与自然选择如何统一？"},

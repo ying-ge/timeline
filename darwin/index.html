@@ -61,7 +61,18 @@
   #prevEvBtn:hover, #nextEvBtn:hover { background: #efede8; }
   #prevEvBtn { top: 274px; }
   #nextEvBtn { top: 312px; }
-  #fsBtn { position: fixed; left: 20px; top: 350px; z-index: 60;
+  #tourSlower, #tourFaster { position: fixed; left: 20px; z-index: 60;
+              padding: 8px 14px; font-size: 13px; border: 1px solid #c9c5bd;
+              border-radius: 20px; background: #fff; color: #555; cursor: pointer;
+              box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  #tourSlower:hover, #tourFaster:hover { background: #efede8; }
+  #tourSlower { top: 350px; }
+  #tourFaster { top: 426px; }
+  #tourSecs { position: fixed; left: 20px; top: 388px; z-index: 60;
+              padding: 8px 14px; font-size: 13px; border: 1px solid #c9c5bd;
+              border-radius: 20px; background: #fff; color: #555;
+              box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  #fsBtn { position: fixed; left: 20px; top: 464px; z-index: 60;
            padding: 8px 14px; font-size: 13px; border: 1px solid #c9c5bd;
            border-radius: 20px; background: #fff; color: #555; cursor: pointer;
            box-shadow: 0 2px 8px rgba(0,0,0,.12); }
@@ -70,7 +81,7 @@
              overflow-y: auto; background: #fff; border: 1px solid #C6D8BC; border-radius: 10px;
              box-shadow: 0 8px 28px rgba(0,0,0,.16); padding: 14px 16px; display: none; }
   #dvPanel.open { display: block; }
-  #dvPanel.open ~ #tourBtn, #dvPanel.open ~ #lifeTourBtn, #dvPanel.open ~ #allTourBtn, #dvPanel.open ~ #resetBtn, #dvPanel.open ~ #prevEvBtn, #dvPanel.open ~ #nextEvBtn, #dvPanel.open ~ #fsBtn { opacity: 0; pointer-events: none; }
+  #dvPanel.open ~ #tourBtn, #dvPanel.open ~ #lifeTourBtn, #dvPanel.open ~ #allTourBtn, #dvPanel.open ~ #resetBtn, #dvPanel.open ~ #prevEvBtn, #dvPanel.open ~ #nextEvBtn, #dvPanel.open ~ #fsBtn, #dvPanel.open ~ #tourSlower, #dvPanel.open ~ #tourFaster, #dvPanel.open ~ #tourSecs { opacity: 0; pointer-events: none; }
   #dvPanel h3 { margin: 0 0 4px; font-size: 15px; color: #3E5B32; }
   #dvPanel p.hint { margin: 0 0 8px; font-size: 12px; color: #777; }
   #dvPanel table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
@@ -144,7 +155,7 @@
   .event.dn:hover .card { margin-top: 22px; }
 
   /* 悬停详情气泡 */
-  #detailTip { position: fixed; width: 75vw; max-width: calc(100vw - 24px);
+  #detailTip { position: fixed; right: 12px; width: 75vw; max-width: calc(100vw - 24px);
                    max-height: 100vh; overflow-y: auto;
                    padding: 16px 18px;
                    background: #fff; border-radius: 10px;
@@ -152,33 +163,42 @@
                    display: none; z-index: 999;
                    opacity: 0; transition: opacity .35s ease; }
   #detailTip.show { opacity: 1; }
-  .detail { text-align: left; font-size: 24px; line-height: 1.7;
+  .detail { text-align: left; line-height: 1.7;
                    color: #222; }
+  /* 字号调节 + 拖拽缩放 */
+  .tipFontCtl { position: absolute; top: 8px; right: 44px; display: flex; align-items: center; gap: 2px;
+                font-size: 13px; color: #666; user-select: none; z-index: 2; }
+  .tipFontCtl button { width: 24px; height: 24px; line-height: 1; border: none; border-radius: 50%;
+                background: rgba(0,0,0,.06); color: #666; font-size: 14px; cursor: pointer; padding: 0; }
+  .tipFontCtl button:hover { background: rgba(0,0,0,.15); color: #222; }
+  .tipFontCtl span { min-width: 30px; text-align: center; cursor: default; font-variant-numeric: tabular-nums; }
+  #tipResize { position: absolute; left: 0; bottom: 0; width: 20px; height: 20px; cursor: nesw-resize; z-index: 2;
+               background: linear-gradient(225deg, transparent 50%, rgba(0,0,0,.18) 50%); border-bottom-left-radius: 10px; }
   .event:hover .detail { opacity: 1; }
-  .detail h3 { display: inline; font-size: 30px; margin-right: 12px; }
+  .detail h3 { display: inline; font-size: 1.25em; margin-right: 12px; }
   .detail h3 a { color: inherit; text-decoration: none; }
   .detail h3 a:hover { text-decoration: underline; }
-  .detail .who { display: inline; color: #999; font-size: 20px; }
+  .detail .who { display: inline; color: #999; font-size: .83em; }
   .detail .who a { color: #2A6F97; text-decoration: none; border-bottom: 1px dotted #2A6F97; }
   .detail .who a:hover { text-decoration: underline; }
-  .detail .darwinq { margin: 2px 0 10px; padding: 10px 12px; background: #EEF3EA;
-                 border: 1px solid #A9C39A; border-radius: 8px; font-size: 22px;
+  .detail .darwinq { margin: 2px 0 10px; padding: .42em .5em; background: #EEF3EA;
+                 border: 1px solid #A9C39A; border-radius: 8px; font-size: .92em;
                  line-height: 1.6; color: #3E5B32; }
-  .detail .darwinq .qtag { font-weight: 700; color: #4F7A3F; font-size: 18px; margin-right: 4px; }
+  .detail .darwinq .qtag { font-weight: 700; color: #4F7A3F; font-size: .75em; margin-right: 4px; }
   .detail p { color: #444; }
-  .detail .evimg { display: block; width: auto; max-width: 100%; height: auto; max-height: 50vh;
-                  margin: 12px auto 0; border-radius: 8px;
-                 border: 1px solid #e5e2da; background: #fff; }
-  .detail .gossip { margin-top: 10px; padding: 10px 12px; background: #FBF6EC;
-                 border: 1px dashed #D4B996; border-radius: 8px; font-size: 21px;
+  .detail .evimg { display: block; width: auto; max-width: 100%; height: auto; max-height: calc(50vh / var(--tipScale, 1));
+                  margin: .5em auto 0; border-radius: 8px;
+                  border: 1px solid #e5e2da; background: #fff; }
+  .detail .gossip { margin-top: 10px; padding: .48em .57em; background: #FBF6EC;
+                 border: 1px dashed #D4B996; border-radius: 8px; font-size: .875em;
                  line-height: 1.65; color: #6B5B3E; }
-  .detail .gossip .gtag { font-weight: 700; color: #B08430; font-size: 18px; margin-right: 4px; }
+  .detail .gossip .gtag { font-weight: 700; color: #B08430; font-size: .75em; margin-right: 4px; }
   /* 图片与八卦并列：图左、八卦右 */
   .detail .side { display: flex; gap: 14px; align-items: center; margin-top: 12px; }
-  .detail .side .evimg { flex: 0 0 auto; min-width: 0; max-width: 50%; width: auto; height: auto; margin: 0; }
+  .detail .side .evimg { flex: 0 0 auto; min-width: 0; max-width: calc(50% * var(--tipScale, 1)); width: auto; height: auto; margin: 0; }
   .detail .side .gossip { flex: 1 1 0; min-width: 0; margin-top: 0; }
   .detail .src { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd;
-                 font-size: 17px; color: #999; }
+                 font-size: .71em; color: #999; }
   .detail .src a { color: #2A6F97; text-decoration: none; }
   .detail .src a:hover { text-decoration: underline; }
 
@@ -217,6 +237,9 @@
 <button id="allTourBtn" title="自动导览：按时间顺序飞遍全部事件">▶ 全景漫游</button>
 <button id="prevEvBtn" title="上一个事件">◀</button>
 <button id="nextEvBtn" title="下一个事件">▶</button>
+<button id="tourSlower" title="停留时间 −1 秒（最少 1 秒）">−</button>
+<button id="tourSecs" style="min-width:44px;text-align:center;cursor:default" title="每站停留 6 秒">6s</button>
+<button id="tourFaster" title="停留时间 +1 秒（最多 30 秒）">＋</button>
 <button id="fsBtn" title="进入/退出全屏">⛶</button>
 <button id="tourBtn" title="自动导览：与演化理论相关的事件">▶ 演化思想之旅</button>
 <button id="lifeTourBtn" title="自动导览：达尔文生卒年 1809–1882 间的事件">▶ 达尔文的一生</button>
@@ -415,7 +438,13 @@ const tourBtn = document.getElementById("tourBtn");
 const allTourBtn = document.getElementById("allTourBtn");
 const lifeTourBtn = document.getElementById("lifeTourBtn");
 let tour = null;   // { i, timer, sel }
-const TOUR_STAY = 6000;   // 每站停留 ms
+let staySec = 6;             // 每站停留秒数，可调
+const stayMs = () => staySec * 1000;
+const secLbl = document.getElementById('tourSecs');
+function setStay(d){ staySec = Math.min(30, Math.max(1, staySec + d));
+  secLbl.textContent = staySec + 's'; secLbl.title = '每站停留 ' + staySec + ' 秒'; }
+document.getElementById('tourSlower').addEventListener('click', () => setStay(-1));
+document.getElementById('tourFaster').addEventListener('click', () => setStay(1));
 
 function tourStop() {
   if (tour) { clearTimeout(tour.timer); tour = null; }
@@ -463,14 +492,14 @@ function tourGoTo(i) {
     badge.textContent = `${tour.label} · 第 ${i + 1} / ${els.length} 站`;
     badge.style.cssText = 'font-weight:700;color:#4F7A3F;font-size:13px;margin-bottom:4px;';
     tip2.insertBefore(badge, tip2.firstChild);
-    // 放在视口中固定的舒适位置（右上）
-    tip2.style.left = Math.max(12, vp.clientWidth - tip2.offsetWidth - 12) + 'px';
+    // 贴右侧显示
+    tip2.style.left = 'auto';
     tip2.style.top = '12px';
     tour.timer = setTimeout(() => {
       if (!tour) return;
       // 直接飞往下一站：详情卡保持显示，不回到全景
       tourGoTo(i + 1);
-    }, TOUR_STAY);
+    }, stayMs());
   }, 1450);
 }
 
@@ -588,16 +617,52 @@ window.addEventListener("load", () => {
   document.body.appendChild(tip);
   let activeEv = null;
 
+  // —— 字号调节（±，详情卡全局生效，localStorage 记忆）——
+  const fontCtl = document.createElement('div'); fontCtl.className = 'tipFontCtl';
+  fontCtl.innerHTML = `<button data-d="-1" title="字号 −">−</button><span id="tipFontLbl" title="双击重置为 100%" style="cursor:pointer">100%</span><button data-d="1" title="字号 +">＋</button>`;
+  tip.appendChild(fontCtl);
+  let tipFontScale = parseFloat(localStorage.getItem('darwinTipFontScale')) || 1;
+  function applyTipFont(){
+    tipFontScale = Math.min(2, Math.max(.6, tipFontScale));
+    tip.style.fontSize = (24 * tipFontScale) + 'px';
+    fontCtl.querySelector('#tipFontLbl').textContent = Math.round(tipFontScale * 100) + '%';
+    localStorage.setItem('darwinTipFontScale', tipFontScale);
+    tip.style.setProperty('--tipScale', tipFontScale);
+  }
+  fontCtl.addEventListener('click', e => { const d = e.target.dataset && e.target.dataset.d; if(!d) return;
+    e.stopPropagation(); tipFontScale += +d * 0.1; applyTipFont(); });
+  fontCtl.addEventListener('dblclick', e => { if(e.target.id !== 'tipFontLbl') return;
+    e.stopPropagation(); tipFontScale = 1; applyTipFont(); });
+  applyTipFont();
+
+  // —— 拖拽左下角手柄调整详情卡宽度（向左拖变宽），全局生效并记忆 ——
+  const tipResize = document.createElement('div'); tipResize.id = 'tipResize';
+  tipResize.title = '拖动调整卡片大小（向左拖变宽，向右拖变窄）';
+  tip.appendChild(tipResize);
+  let tipW = parseInt(localStorage.getItem('darwinTipW')) || 0;
+  if (tipW) tip.style.width = tipW + 'px';
+  tipResize.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation();
+    const sw = tip.getBoundingClientRect().width, sx = e.clientX;
+    const mv = ev => { tipW = Math.round(Math.min(innerWidth - 24, Math.max(340, sw + (sx - ev.clientX))));
+      tip.style.width = tipW + 'px'; };
+    const up = () => { window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up);
+      localStorage.setItem('darwinTipW', tipW); };
+    window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+  });
+
+  // tip.innerHTML 被替换后，自动恢复字号控件与缩放手柄
+  new MutationObserver(() => { if(!tip.contains(fontCtl)) tip.append(fontCtl, tipResize); })
+    .observe(tip, { childList: true });
+
   function place(e, evEl){
-    // 优先放在事件点旁边（不跟鼠标），避让视口
+    // 卡片始终贴右侧；只做垂直避让
+    const h = tip.offsetHeight || 150;
     const r = evEl.querySelector('.dot').getBoundingClientRect();
-    const w = tip.offsetWidth || 300, h = tip.offsetHeight || 150;
-    let x = r.right + 18, y = r.top - 40;
-    if (x + w > innerWidth - 12) x = r.left - w - 18;
-    if (x < 12) x = 12;
+    let y = r.top - 40;
     if (y + h > innerHeight - 12) y = innerHeight - h - 12;
     if (y < 12) y = 12;
-    tip.style.left = x + 'px';
+    tip.style.left = 'auto';
     tip.style.top = y + 'px';
   }
 
@@ -759,7 +824,7 @@ function gotoNeighborEvent(dir) {
     tip2.style.color = getComputedStyle(el).color;
     tip2.style.display = 'block';
     requestAnimationFrame(() => tip2.classList.add('show'));
-    tip2.style.left = Math.max(12, vp.clientWidth - tip2.offsetWidth - 12) + 'px';
+    tip2.style.left = 'auto';
     tip2.style.top = '12px';
   }, 750);
 }
