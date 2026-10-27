@@ -29,6 +29,7 @@ timeline/
 |---|---|---|---|
 | `darwin` | 生物演化思想时间线 | `index.html` | `data.js` |
 | `bioinfo` | AI 解码生命时间线 | `index.html` | `data.js` |
+| `geotime` | 深时·地球与生命时间线（唯一维护版本） | `index.html` | `data.js` |
 
 ## 许可协议
 
