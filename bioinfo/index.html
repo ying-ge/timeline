@@ -21,8 +21,9 @@
   .legend span:hover { background:#e8e5de; border-color:#c9c5bd; }
   .legend i { width:11px; height:11px; border-radius:50%; display:inline-block; }
 
-  #viewport { position:relative; height:calc(100vh - 108px); overflow:hidden; cursor:grab; }
+  #viewport { position:relative; height:calc(100vh - 108px); overflow:hidden; cursor:grab; user-select:none; -webkit-user-select:none; }
   #viewport.dragging { cursor:grabbing; }
+  #detailTip, #detailTip * { user-select:text; -webkit-user-select:text; }
   #timeline { position:relative; height:100%; width:11000px;
               transform-origin:0 0; will-change:transform; }
 
@@ -162,7 +163,9 @@
   <span id="tourBtn" class="lg-tour" title="时间之旅（空格暂停/继续，Esc 退出）">▶</span>
   <span id="tourPrev" class="lg-tour" title="上一个事件">⏮</span>
   <span id="tourNext" class="lg-tour" title="下一个事件">⏭</span>
-  <span id="tourSpeed" class="lg-tour" title="调整停留时间：中">⚙</span>
+  <span id="tourSlower" class="lg-tour" title="停留时间 −1 秒（最少 1 秒）">−</span>
+  <span id="tourSecs" style="min-width:34px;text-align:center;cursor:default">6s</span>
+  <span id="tourFaster" class="lg-tour" title="停留时间 +1 秒（最多 30 秒）">＋</span>
   <span id="fsBtn" class="lg-tour" title="进入/退出全屏">⛶</span>
 </div>
 
@@ -362,6 +365,7 @@ vp.addEventListener("touchstart",()=>{touchSeen=true;},{passive:true});
 vp.addEventListener("mousedown",e=>{
   if(touchSeen) return;   // 触摸产生的合成 mousedown，跳过
   if(tip.contains(e.target)) return;   // 详情卡内拖动选择文本，不拖时间线
+  e.preventDefault();   // 防止按下事件卡文字时被选中文本/原生拖拽抢走
   stopAnim(); dragging=true; sx=e.clientX; sy=e.clientY;
   oTx=view.tx; oTy=view.ty; vx=0; lastX=e.clientX; lastT=performance.now();
   vp.classList.add("dragging");
@@ -369,7 +373,9 @@ vp.addEventListener("mousedown",e=>{
 window.addEventListener("mousemove",e=>{
   if(!dragging)return;
   view.tx=clampTx(oTx+(e.clientX-sx),view.s);
-  view.ty=clamp(oTy+(e.clientY-sy),vp.clientHeight-vp.clientHeight*view.s,0);
+  // 与触屏一致：未放大时纵向锁死；放大后 clamp 范围才是下负上 0
+  const yLo=vp.clientHeight-vp.clientHeight*view.s;
+  view.ty=yLo<0?clamp(oTy+(e.clientY-sy),yLo,0):0;
   const now=performance.now();
   if(now-lastT>0){ vx=(e.clientX-lastX)/(now-lastT); }   // px/ms
   lastX=e.clientX; lastT=now;
@@ -403,6 +409,8 @@ vp.addEventListener("wheel",e=>{
     view.tx=e.clientX-(e.clientX-view.tx)*k;
     view.ty=e.clientY-(e.clientY-view.ty)*k;
     view.s=ns;
+    const yLo2=vp.clientHeight-vp.clientHeight*view.s;
+    view.ty=yLo2<0?clamp(view.ty,yLo2,0):0;   // 缩小后纵向范围失效，重锁回 0
   }else{
     const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
     view.tx=clampTx(view.tx-d,view.s);
@@ -460,14 +468,19 @@ setTimeout(()=>{document.getElementById("hint").style.opacity=0;},6000);
   const btn=document.getElementById("tourBtn");
   const prevBtn=document.getElementById("tourPrev");
   const nextBtn=document.getElementById("tourNext");
-  const spdBtn=document.getElementById("tourSpeed");
+  const spdBtn=document.getElementById("tourSlower");
+  const spdUp=document.getElementById("tourFaster");
+  const secLbl=document.getElementById("tourSecs");
   const vp2=document.getElementById("viewport");   // 相机模式：平移由上面的 view/apply 负责
   let timer=null, idx=0, on=false, paused=false;
   const seq=placed.slice();   // placed 已按年份排序
-  const SPEEDS=[{n:"慢",ms:9000},{n:"中",ms:6000},{n:"快",ms:3500}];
-  let spd=1;                  // 默认"中"
+  let staySec=6;              // 每站停留秒数
+  secLbl.title="每站停留 6 秒";
+  function stayMs(){ return staySec*1000; }
+  function setStay(d){ staySec=Math.min(30,Math.max(1,staySec+d)); secLbl.textContent=staySec+"s";
+    secLbl.title="每站停留 "+staySec+" 秒"; if(on) arm(); }
 
-  function arm(){ clearInterval(timer); timer=setInterval(()=>{idx=nextIdx(idx); step();}, SPEEDS[spd].ms); }
+  function arm(){ clearInterval(timer); timer=setInterval(()=>{idx=nextIdx(idx); step();}, stayMs()); }
 
   function nextIdx(i){ return (i+1)%seq.length; }
   function prevIdx(i){ return (i-1+seq.length)%seq.length; }
@@ -508,9 +521,10 @@ setTimeout(()=>{document.getElementById("hint").style.opacity=0;},6000);
     step(); arm();
   }
   btn.addEventListener("click",()=>{ on?pause():start(true); });
-  prevBtn.addEventListener("click",()=>{ idx=prevIdx(idx); if(on){step();arm();}else{window.__touring=true;step();setTimeout(()=>{if(!on){window.__touring=false;tip.style.display="none";}},SPEEDS[spd].ms);} });
-  nextBtn.addEventListener("click",()=>{ idx=nextIdx(idx); if(on){step();arm();}else{window.__touring=true;step();setTimeout(()=>{if(!on){window.__touring=false;tip.style.display="none";}},SPEEDS[spd].ms);} });
-  spdBtn.addEventListener("click",()=>{ spd=(spd+1)%SPEEDS.length; spdBtn.title="调整停留时间："+SPEEDS[spd].n; if(on) arm(); });
+  prevBtn.addEventListener("click",()=>{ idx=prevIdx(idx); if(on){step();arm();}else{window.__touring=true;step();setTimeout(()=>{if(!on){window.__touring=false;tip.style.display="none";}},stayMs());} });
+  nextBtn.addEventListener("click",()=>{ idx=nextIdx(idx); if(on){step();arm();}else{window.__touring=true;step();setTimeout(()=>{if(!on){window.__touring=false;tip.style.display="none";}},stayMs());} });
+  spdBtn.addEventListener("click",()=>setStay(-1));
+  spdUp.addEventListener("click",()=>setStay(1));
   window.addEventListener("keydown",e=>{
     if(e.code==="Escape" && on){ stop(); return; }   // Esc 退出导览
     if(e.code!=="Space") return;
